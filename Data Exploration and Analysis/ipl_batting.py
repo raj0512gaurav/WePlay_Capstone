@@ -35,7 +35,7 @@ def ipl_batting_bronze():
 )
 def ipl_batting_bronze_clean():
     return (
-        dlt.read("batting_bronze")
+        dlt.read("ipl_batting_bronze")
         .withColumnRenamed("R", "runs_scored")
         .withColumnRenamed("B", "balls_faced")
     )
@@ -48,5 +48,5 @@ def ipl_batting_bronze_clean():
 
 def ipl_batting_silver():
     return (
-        dlt.read("batting_bronze_clean")
+        dlt.read("ipl_batting_bronze_clean")
     )
