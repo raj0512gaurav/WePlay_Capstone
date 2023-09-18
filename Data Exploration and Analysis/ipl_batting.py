@@ -5,7 +5,7 @@
 # COMMAND ----------
 
 #setting configurations for raw data mountpoint
-spark.conf.set("source_batch_data","/mnt/batchrawdata/")
+spark.conf.set("source_batch_data","/mnt/weplaybatchraw/")
 
 # COMMAND ----------
 
