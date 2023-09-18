@@ -11,7 +11,7 @@ import dlt
 # COMMAND ----------
 
 #set spark config for raw data mount
-spark.conf.set('raw_batch', '/mnt/capadls')
+spark.conf.set('raw_batch', '/mnt/weplaybatchraw')
 
 source = spark.conf.get('raw_batch')
 
