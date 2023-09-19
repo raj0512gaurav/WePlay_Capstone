@@ -3,15 +3,8 @@
 # Define the path to the bronze data in your data lake
 
 silver_cleaned_data_path = "/pipelines/f5f8b02a-d16c-4786-9e1e-ae4c13ad39b4/tables/ipl_matches_silver"  
-
- 
-
 # Read the silver into a DataFrame
-
 df = spark.read.format("delta").load(silver_cleaned_data_path)
-
- 
-
 display(df)
 
 # COMMAND ----------
