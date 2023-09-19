@@ -4,8 +4,13 @@ silver_data_path = "/pipelines/c8f60a52-2538-46ba-9a33-b67b68b89cca/tables/ipl_b
 
 # Read the bronze data into a DataFrame
 silver_df = spark.read.format("delta").load(silver_data_path)
-
 display(silver_df)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Batting Average
+# MAGIC
 
 # COMMAND ----------
 
@@ -40,6 +45,11 @@ display(overall_batting_avg)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ##Batting strike rate
+
+# COMMAND ----------
+
 
 # Calculate total runs, total balls faced, and total matches played by each player year-wise
 batting_stats = silver_df.groupBy("batsmen", "Year") \
@@ -71,6 +81,11 @@ display(batting_stats)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## Total boundaries 
+
+# COMMAND ----------
+
 
 # Calculate the total count of boundaries (fours + sixes) for each player year-wise
 boundary_counts = silver_df.groupBy("batsmen", "Year") \
@@ -85,6 +100,11 @@ display(boundary_counts)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## Centuries and half centuries
+
+# COMMAND ----------
+
 
 # Calculate the number of half-centuries (50-99) and centuries (100 or more) scored by each player
 half_centuries_and_centuries = silver_df.groupBy("batsmen") \
@@ -95,9 +115,5 @@ half_centuries_and_centuries = silver_df.groupBy("batsmen") \
 
 # Show the number of half-centuries and centuries scored by each player
 display(half_centuries_and_centuries)
-
-
-
-# COMMAND ----------
 
 
