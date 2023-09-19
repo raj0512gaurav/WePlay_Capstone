@@ -1,11 +1,14 @@
 # Databricks notebook source
+# Define the path to the Silver data in your data lake
 
-# Define the path to the bronze data in your data lake
-
-silver_cleaned_data_path = "/pipelines/f5f8b02a-d16c-4786-9e1e-ae4c13ad39b4/tables/ipl_matches_silver"  
+silver_cleaned_data_path = "/pipelines/c8f60a52-2538-46ba-9a33-b67b68b89cca/tables/ipl_matches_silver"  
 # Read the silver into a DataFrame
 df = spark.read.format("delta").load(silver_cleaned_data_path)
 display(df)
+
+# COMMAND ----------
+
+from pyspark.sql.functions import *
 
 # COMMAND ----------
 
@@ -24,7 +27,6 @@ display(win_mode_analysis)
 # COMMAND ----------
 
 #Winning Team Analysis 
-from pyspark.sql.functions import count, when, concat_ws
 
 # Calculate the number of matches won by each team
 team1_wins = df.groupBy("team_1").agg(count(when(df["winner"] == df["team_1"], 1)).alias("wins_team1"))
@@ -49,7 +51,6 @@ display(total_wins.orderBy("total_wins", ascending=False))
 # COMMAND ----------
 
 #Match_date_Analysis
-from pyspark.sql.functions import month, dayofweek, date_format
 
 # Extract month and day of the week from match_date
 df = df.withColumn("month", date_format("match_date", "MMMM"))  # "MMMM" format gives the full month name
@@ -68,11 +69,6 @@ display(matches_per_month)
 # COMMAND ----------
 
 
-
-# COMMAND ----------
-
-from pyspark.sql.functions import when, col
-
 # Calculate the total number of matches and the number of matches won by the toss winner
 total_matches = df.count()
 
@@ -87,4 +83,8 @@ team_success_rate = team_success_rate.withColumn("success_rate", (col("count") /
 
 # Display the success rate for each team
 display(team_success_rate)
+
+
+# COMMAND ----------
+
 
