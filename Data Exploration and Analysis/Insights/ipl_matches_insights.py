@@ -12,13 +12,23 @@ from pyspark.sql.functions import *
 
 # COMMAND ----------
 
-#Ground Analysis
+# MAGIC %md
+# MAGIC ## Popular Ground Analysis
+
+# COMMAND ----------
+
+
 popular_grounds = df.groupBy("ground").count().orderBy("count", ascending=False)
 display(popular_grounds)
 
 # COMMAND ----------
 
-#Match_Outcome Analysis 
+# MAGIC %md
+# MAGIC ##Match_Outcome Analysis
+
+# COMMAND ----------
+
+ 
 win_mode_analysis = df.groupBy("team_1", "win_mode").agg(count("*").alias("win_mode_count"))
 
 # Show the results
@@ -26,7 +36,12 @@ display(win_mode_analysis)
 
 # COMMAND ----------
 
-#Winning Team Analysis 
+# MAGIC %md
+# MAGIC ##Winning Team Analysis 
+
+# COMMAND ----------
+
+
 
 # Calculate the number of matches won by each team
 team1_wins = df.groupBy("team_1").agg(count(when(df["winner"] == df["team_1"], 1)).alias("wins_team1"))
@@ -50,7 +65,11 @@ display(total_wins.orderBy("total_wins", ascending=False))
 
 # COMMAND ----------
 
-#Match_date_Analysis
+# MAGIC %md
+# MAGIC ##Match_date_Analysis
+
+# COMMAND ----------
+
 
 # Extract month and day of the week from match_date
 df = df.withColumn("month", date_format("match_date", "MMMM"))  # "MMMM" format gives the full month name
@@ -65,6 +84,11 @@ matches_per_day = df.groupBy("day_of_week").count()
 
 display(matches_per_day)
 display(matches_per_month)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Sucess rate
 
 # COMMAND ----------
 
@@ -83,8 +107,4 @@ team_success_rate = team_success_rate.withColumn("success_rate", (col("count") /
 
 # Display the success rate for each team
 display(team_success_rate)
-
-
-# COMMAND ----------
-
 
