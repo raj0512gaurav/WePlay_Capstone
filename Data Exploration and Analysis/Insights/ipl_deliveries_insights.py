@@ -71,3 +71,19 @@ dismissal_analysis = dismissal_analysis.withColumn(
 
 # Show the results
 display(dismissal_analysis)
+
+# COMMAND ----------
+
+#Bowling Performance: 
+# Filter rows where a wicket was taken
+wickets_df = df.filter(df["mode_of_dismissal"].isNotNull())
+
+# Group the data by bowler and count the wickets
+bowler_wickets = wickets_df.groupBy("bowler").agg(count("*").alias("wickets_taken"))
+
+# Order the results by the number of wickets taken in descending order
+bowler_wickets = bowler_wickets.orderBy("wickets_taken", ascending=False)
+
+# Show the results
+display(bowler_wickets)
+
