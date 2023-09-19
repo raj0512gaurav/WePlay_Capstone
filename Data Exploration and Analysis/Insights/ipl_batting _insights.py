@@ -12,10 +12,10 @@ display(silver_df)
 from pyspark.sql.functions import *
 
 # Extract the year from the date column
-silver_df = silver_df.withColumn("year", year(col("match_date")))
+silver_df = silver_df.withColumn("Year", year(col("match_date")))
 
 # Calculate total runs and total matches played by each player year-wise
-batting_stats = silver_df.groupBy("batsmen", "year") \
+batting_stats = silver_df.groupBy("batsmen", "Year") \
     .agg(sum("runs_scored").alias("total_runs"), count("*").alias("total_matches"))
 
 # Calculate batting averages
@@ -40,8 +40,6 @@ display(overall_batting_avg)
 
 # COMMAND ----------
 
-# Extract the year from the date column
-silver_df = silver_df.withColumn("Year", year(col("match_date")))
 
 # Calculate total runs, total balls faced, and total matches played by each player year-wise
 batting_stats = silver_df.groupBy("batsmen", "Year") \
@@ -73,8 +71,6 @@ display(batting_stats)
 
 # COMMAND ----------
 
-# Extract the year from the date column
-silver_df = silver_df.withColumn("Year", year(col("match_date")))
 
 # Calculate the total count of boundaries (fours + sixes) for each player year-wise
 boundary_counts = silver_df.groupBy("batsmen", "Year") \
@@ -86,17 +82,6 @@ boundary_counts = silver_df.groupBy("batsmen", "Year") \
 
 # Show the year-wise boundary counts
 display(boundary_counts)
-
-# COMMAND ----------
-
-# Calculate the runs scored by each player against each team
-runs_vs_teams = silver_df.groupBy("batsmen", "team_2") \
-    .agg(
-        sum("runs_scored").alias("Runs_Sored")
-    )
-runs_vs_teams = runs_vs_teams.withColumnRenamed("team_2", "Opponent_team")
-# Show the runs scored by each player against each team
-display(runs_vs_teams)
 
 # COMMAND ----------
 
