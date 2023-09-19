@@ -9,7 +9,6 @@ display(silver_df)
 
 # COMMAND ----------
 
-
 from pyspark.sql.functions import sum, count, col
 
 # Calculate the total runs conceded by each bowler
@@ -26,10 +25,14 @@ display(bowler_average)
 
 # COMMAND ----------
 
+# Group the data by bowler and count deliveries and wickets
+bowler_stats = df.groupBy("bowler").agg(
+    count("delivery").alias("deliveries"),
+    count(when(df["mode_of_dismissal"].isNotNull(), 1)).alias("wickets")
+)
 
+# Calculate the bowling strike rate
+bowler_stats = bowler_stats.withColumn("strike_rate", (bowler_stats["deliveries"] / bowler_stats["wickets"]).cast("double"))
 
-
-
-# COMMAND ----------
-
-
+# Show the results
+display(bowler_stats)
