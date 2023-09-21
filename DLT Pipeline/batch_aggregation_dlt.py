@@ -2,11 +2,12 @@
 #Importing modules
 from pyspark.sql.functions import *
 from pyspark.sql.window import Window
+import dlt
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Number of extras
+# MAGIC ##Metrices UDFs
 
 # COMMAND ----------
 
@@ -21,11 +22,6 @@ def Number_of_extras(deliveries_df):
     extras_by_bowler = extras_by_bowler.orderBy(col("total_extras").desc())
     # Show the result
     return extras_by_bowler
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ##Dot ball percentage
 
 # COMMAND ----------
 
@@ -50,20 +46,15 @@ def dot_ball_percentage(deliveries_df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ##Economy rate
-
-# COMMAND ----------
-
-def Economy_rate(deliveries_df):
+def economy_rate(deliveries_df):
     df=deliveries_df
     # Calculate the total runs conceded by each bowler
 
-    total_runs_conceded = df.groupBy("bowler").agg(F.sum("runs_batsman").alias("total_runs_conceded"))
+    total_runs_conceded = df.groupBy("bowler").agg(sum("runs_batsman").alias("total_runs_conceded"))
 
     # Calculate the total deliveries bowled by each bowler
 
-    total_deliveries = df.groupBy("bowler").agg(F.count("delivery").alias("total_deliveries"))
+    total_deliveries = df.groupBy("bowler").agg(count("delivery").alias("total_deliveries"))
 
     # Join the two DataFrames to calculate the economy rate
 
@@ -76,11 +67,6 @@ def Economy_rate(deliveries_df):
     economy_df = economy_df.select("bowler", "economy_rate")
 
     return economy_df
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Bowling strike rate
 
 # COMMAND ----------
 
@@ -107,11 +93,6 @@ def Bowling_strike_rate(deliveries_df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ##Best Bowling Figures
-
-# COMMAND ----------
-
 def best_bowling_figures(deliveries_df):
 
     #Filtering records by removing run outs
@@ -134,11 +115,6 @@ def best_bowling_figures(deliveries_df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ##Maiden Overs
-
-# COMMAND ----------
-
 def maiden_overs(deliveries_df):
     #Grouping
     df = deliveries_df.groupBy('match_key','innings_order','bowling_over','bowler').agg(sum('runs_total').alias('runs'))
@@ -153,11 +129,6 @@ def maiden_overs(deliveries_df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ##Boundaries Conceded
-
-# COMMAND ----------
-
 def boundaries_conceded(deliveries_df):
     #Applying Filter for boundaries
     df = deliveries_df.filter((col('runs_batsman')==4) | (col('runs_batsman')==6))
@@ -169,12 +140,6 @@ def boundaries_conceded(deliveries_df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ## Wickets Taken
-
-# COMMAND ----------
-
-
 def calculate_wickets_taken(df):
     # Create a new column 'wickets_taken' that contains 1 for 'stumped' and 'caught', 0 otherwise
     df = df.withColumn("wickets_taken", when((col("mode_of_dismissal") == "stumped") | (col("mode_of_dismissal") == "caught"), 1).otherwise(0))
@@ -183,11 +148,6 @@ def calculate_wickets_taken(df):
     wickets_df = df.groupBy('bowler').agg(sum('wickets_taken').alias('wickets_taken'))
 
     return wickets_df
-
-# COMMAND ----------
-
-# MAGIC %md 
-# MAGIC ## Bowling Average 
 
 # COMMAND ----------
 
@@ -206,16 +166,41 @@ def bowling_average(df):
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ##Dismissals by catch
-
-# COMMAND ----------
-
 def count_wickets_by_catch_for_each_bowler(df):
     # Filter rows where 'mode_of_dismissal' is 'caught'
     caught_wickets = df.filter(col("mode_of_dismissal") == "caught")
 
     # Group the DataFrame by 'bowler' and count the number of caught wickets for each bowler
-    bowler_wickets = caught_wickets.groupBy("bowler").count()
+    bowler_wickets = caught_wickets.groupBy("bowler").agg(count('match_key').alias('wickets_by_catches'))
 
     return bowler_wickets
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Aggregation
+
+# COMMAND ----------
+
+@dlt.table(
+  comment="The batch aggregated facts for bowlers"
+)
+
+def bowling_facts_batch():
+    df = dlt.read("ipl_deliveries_silver")
+    bowlers_df = df.groupBy('bowler').agg(count('match_key').alias('keys')).drop('keys')
+
+    Number_of_extras_df = Number_of_extras(df)
+    dot_ball_percentage_df = dot_ball_percentage(df)
+    economy_rate_df = economy_rate(df)
+    Bowling_strike_rate_df = Bowling_strike_rate(df)
+    best_bowling_figures_df = best_bowling_figures(df)
+    maiden_overs_df = maiden_overs(df)
+    boundaries_conceded_df = boundaries_conceded(df)
+    calculate_wickets_taken_df = calculate_wickets_taken(df)
+    bowling_average_df = bowling_average(df)
+    count_wickets_by_catch_for_each_bowler_df = count_wickets_by_catch_for_each_bowler(df)
+
+    result = bowlers_df.join(Number_of_extras_df,on='bowler',how='left').join(dot_ball_percentage_df,on='bowler',how='left').join(economy_rate_df,on='bowler',how='left').join(Bowling_strike_rate_df,on='bowler',how='left').join(best_bowling_figures_df,on='bowler',how='left').join(maiden_overs_df,on='bowler',how='left').join(boundaries_conceded_df,on='bowler',how='left').join(calculate_wickets_taken_df,on='bowler',how='left').join(bowling_average_df,on='bowler',how='left').join(count_wickets_by_catch_for_each_bowler_df,on='bowler',how='left')
+    
+    return result

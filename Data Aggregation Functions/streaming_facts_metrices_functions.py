@@ -48,11 +48,11 @@ def economy_rate_stream(stream_df):
     df=stream_df
     # Calculate the total runs conceded by each bowler
 
-    total_runs_conceded = df.groupBy("bowler").agg(F.sum("runs").alias("total_runs_conceded"))
+    total_runs_conceded = df.groupBy("bowler").agg(sum("runs").alias("total_runs_conceded"))
 
     # Calculate the total deliveries bowled by each bowler
 
-    total_deliveries = df.groupBy("bowler").agg(F.count("ball").alias("total_deliveries"))
+    total_deliveries = df.groupBy("bowler").agg(count("ball").alias("total_deliveries"))
 
     # Join the two DataFrames to calculate the economy rate
 
