@@ -14,6 +14,7 @@ from pyspark.sql.functions import *
 
 # MAGIC %md
 # MAGIC ## Popular Ground Analysis
+# MAGIC Description: To identify the most frequently used ground for matches
 
 # COMMAND ----------
 
@@ -25,6 +26,8 @@ display(popular_grounds)
 
 # MAGIC %md
 # MAGIC ##Match_Outcome Analysis
+# MAGIC Description: Analyze whether certain win modes are more common for specific teams.
+# MAGIC
 
 # COMMAND ----------
 
@@ -38,6 +41,8 @@ display(win_mode_analysis)
 
 # MAGIC %md
 # MAGIC ##Winning Team Analysis 
+# MAGIC Description: No. of matches each team wins 
+# MAGIC
 
 # COMMAND ----------
 
@@ -66,7 +71,8 @@ display(total_wins.orderBy("total_wins", ascending=False))
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ##Match_date_Analysis
+# MAGIC ##Match_date_Analysis 
+# MAGIC Description: Analyze if there are any specific days of the week when matches are more frequent
 
 # COMMAND ----------
 
@@ -88,7 +94,9 @@ display(matches_per_month)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ##Sucess rate
+# MAGIC ##Sucess rate 
+# MAGIC Description:  Investigate whether winning the toss has a significant impact on the match result
+# MAGIC
 
 # COMMAND ----------
 
