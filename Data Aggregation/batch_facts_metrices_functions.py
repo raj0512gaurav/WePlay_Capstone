@@ -88,7 +88,7 @@ def Bowling_strike_rate(deliveries_df):
 
     #counting number of wickets takes
     wickets_taken_df = deliveries_df \
-            .filter((col("mode_of_dismissal") == "caught")) \
+            .filter((col("mode_of_dismissal") == "stumped") | (col("mode_of_dismissal") == "caught")) \
             .groupBy("bowler") \
             .agg((count("*")*6).alias("wickets_taken")) 
 
@@ -166,3 +166,56 @@ def boundaries_conceded(deliveries_df):
     boundaries_conceded = df.groupBy('bowler').agg(count('match_key').alias('boundaries_conceded')).orderBy(desc('boundaries_conceded'))
 
     return boundaries_conceded
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Wickets Taken
+
+# COMMAND ----------
+
+
+def calculate_wickets_taken(df):
+    # Create a new column 'wickets_taken' that contains 1 for 'stumped' and 'caught', 0 otherwise
+    df = df.withColumn("wickets_taken", when((col("mode_of_dismissal") == "stumped") | (col("mode_of_dismissal") == "caught"), 1).otherwise(0))
+    
+    # Group the DataFrame by 'bowler' and sum the 'wickets_taken' column
+    wickets_df = df.groupBy('bowler').agg(sum('wickets_taken').alias('wickets_taken'))
+
+    return wickets_df
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ## Bowling Average 
+
+# COMMAND ----------
+
+def bowling_average(df):
+    #using the previous function to get number of wickets taken by the bowler
+    wickets = calculate_wickets_taken(df)
+
+    #counting total runs 
+    runs = df.groupBy('bowler').agg(sum('runs_total').alias('runs'))
+
+    result = runs.join(wickets, on='bowler')
+
+    result = result.withColumn('bowling_average', round(col('runs')/col('wickets_taken'),2)).drop('runs', 'wickets_taken')
+
+    return result
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Dismissals by catch
+
+# COMMAND ----------
+
+def count_wickets_by_catch_for_each_bowler(df):
+    # Filter rows where 'mode_of_dismissal' is 'caught'
+    caught_wickets = df.filter(col("mode_of_dismissal") == "caught")
+
+    # Group the DataFrame by 'bowler' and count the number of caught wickets for each bowler
+    bowler_wickets = caught_wickets.groupBy("bowler").count()
+
+    return bowler_wickets
