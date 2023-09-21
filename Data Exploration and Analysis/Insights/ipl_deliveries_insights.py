@@ -8,13 +8,38 @@ display(df)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## Creating widgets for bowlers and batsmen
+
+# COMMAND ----------
+
+
 from pyspark.sql.functions import *
+
+# Extract a list of unique bowler names from your DataFrame
+bowler_names = [row.bowler for row in df.select("bowler").distinct().collect()]
+
+# Add "All" as the first option in the list
+bowler_names.insert(0, "All")
+
+# Create a dropdown widget for selecting a bowler
+dbutils.widgets.dropdown("Select Bowler", "All", bowler_names)
+
+# Extract a list of unique batsman names from your DataFrame
+batsman_names = [row.batsman for row in df.select("batsman").distinct().collect()]
+
+# Add "All" as the first option in the list
+batsman_names.insert(0, "All")
+
+# Create a dropdown widget for selecting a batsman
+dbutils.widgets.dropdown("Select Batsman", "All", batsman_names)
 
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##Bowling Averages
+# MAGIC Calculating the bowling averages for individual players to assess their consistency and overall performance career wise
 
 # COMMAND ----------
 
@@ -28,13 +53,22 @@ runs_conceded_by_bowler = df.groupBy("bowler") \
 # Calculate the bowling average for each bowler
 bowler_average = runs_conceded_by_bowler.select("bowler", (col("total_runs_conceded") / 10).alias("Bowling_average"))
 
-display(bowler_average)
+# Get the selected bowler from the widget
+selected_bowler = dbutils.widgets.get("Select Bowler")
+
+# Display the selected bowler(s) based on the selection
+if selected_bowler == "All":
+    display(bowler_average)
+else:
+    display(bowler_average.filter(col("bowler") == selected_bowler))
+
 
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Bowling strike rate
+# MAGIC Calculating the strike rate for analyzing the striking ability of a bowler
 
 # COMMAND ----------
 
@@ -47,14 +81,20 @@ bowler_stats = df.groupBy("bowler").agg(
 # Calculate the bowling strike rate
 bowler_stats = bowler_stats.withColumn("strike_rate", round((bowler_stats["deliveries"] / bowler_stats["wickets"]).cast("double"),2))
 
-# Show the results
-display(bowler_stats)
+# Get the selected bowler from the widget
+selected_bowler = dbutils.widgets.get("Select Bowler")
+
+# Display the selected bowler(s) based on the selection
+if selected_bowler == "All":
+    display(bowler_stats)
+else:
+    display(bowler_stats.filter(col("bowler") == selected_bowler))
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ##Mode of dismissal
-# MAGIC
+# MAGIC  To know the batsman weakness and pattern of getting out
 
 # COMMAND ----------
 
@@ -74,6 +114,7 @@ display(dismissal_analysis)
 
 # MAGIC %md
 # MAGIC ## Bowling analysis
+# MAGIC Calculating the total wickets taken by each bowler
 
 # COMMAND ----------
 
@@ -86,17 +127,22 @@ bowler_wickets = wickets_df.groupBy("bowler").agg(count("*").alias("wickets_take
 # Order the results by the number of wickets taken in descending order
 bowler_wickets = bowler_wickets.orderBy("wickets_taken", ascending=False)
 
-# Show the results
-display(bowler_wickets)
+# Get the selected bowler from the widget
+selected_bowler = dbutils.widgets.get("Select Bowler")
+
+# Display the selected bowler(s) based on the selection
+if selected_bowler == "All":
+    display(bowler_wickets)
+else:
+    display(bowler_wickets.filter(col("bowler") == selected_bowler))
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## Death over analysis
+# MAGIC Calculating the strike rate of a batsman between 15 to 20 overs
 
 # COMMAND ----------
-
-# Finding strike rate of batsman in death over
 
 # Define the range of death overs (e.g., overs 16 to 20)
 death_overs_start = 16
@@ -124,6 +170,14 @@ death_over_strike_rate = death_over_strike_rate.select("batsman", "death_over_st
 # Apply order by to sort the results by strike rate in descending order
 death_over_strike_rate = death_over_strike_rate.orderBy(col("death_over_strike_rate").desc())
 
+# Get the selected batsman from the widget
+selected_batsman = dbutils.widgets.get("Select Batsman")
+
+# Display the selected batsman(s) based on the selection
+if selected_batsman == "All":
+    display(death_over_strike_rate)
+else:
+    display(death_over_strike_rate.filter(col("batsman") == selected_batsman))
 # Show the death over strike rate for each batsman
-display(death_over_strike_rate)
+
 
