@@ -57,7 +57,6 @@ def dot_ball_percentage(deliveries_df):
 
 def Economy_rate(deliveries_df):
     df=deliveries_df
-
     # Calculate the total runs conceded by each bowler
 
     total_runs_conceded = df.groupBy("bowler").agg(F.sum("runs_batsman").alias("total_runs_conceded"))
@@ -69,29 +68,7 @@ def Economy_rate(deliveries_df):
     # Join the two DataFrames to calculate the economy rate
 
     economy_df = total_runs_conceded.join(total_deliveries, "bowler")
-
     # Calculate the economy rate
-
-    economy_df = economy_df.withColumn("economy_rate", (economy_df["total_runs_conceded"] / economy_df["total_deliveries"]))
-
-    # Select the relevant columns
-
-    economy_df = economy_df.select("bowler", "economy_rate")
-
-    # Calculate the total runs conceded by each bowler
-
-    total_runs_conceded = df.groupBy("bowler").agg(F.sum("runs_batsman").alias("total_runs_conceded"))
-
-    # Calculate the total deliveries bowled by each bowler
-
-    total_deliveries = df.groupBy("bowler").agg(F.count("delivery").alias("total_deliveries"))
-
-    # Join the two DataFrames to calculate the economy rate
-
-    economy_df = total_runs_conceded.join(total_deliveries, "bowler")
-
-    # Calculate the economy rate
-
     economy_df = economy_df.withColumn("economy_rate", round((economy_df["total_runs_conceded"] / economy_df["total_deliveries"]),2))
 
     # Select the relevant columns
