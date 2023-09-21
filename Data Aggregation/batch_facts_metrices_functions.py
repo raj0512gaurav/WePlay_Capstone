@@ -1,17 +1,7 @@
 # Databricks notebook source
-#importing functions
+#Importing modules
 from pyspark.sql.functions import *
 from pyspark.sql.window import Window
-
-# COMMAND ----------
-
-location_ipl_deliveries_table ="dbfs:/pipelines/9ad3a5f0-6dbb-4ff7-a7e2-df19abdaac46/tables/ipl_deliveries_silver"
-
-
-
-# COMMAND ----------
-
-deliveries_df= spark.read.format("delta").option("header","true").load(location_ipl_deliveries_table)
 
 # COMMAND ----------
 
@@ -31,7 +21,6 @@ def Number_of_extras(deliveries_df):
     extras_by_bowler = extras_by_bowler.orderBy(col("total_extras").desc())
     # Show the result
     return extras_by_bowler
-
 
 # COMMAND ----------
 
@@ -58,8 +47,6 @@ def dot_ball_percentage(deliveries_df):
         round((dot_balls_percentage_df.dot_balls_count / dot_balls_percentage_df.total_balls_count) * 100, 2))
     
     return dot_balls_percentage_df
-
-
 
 # COMMAND ----------
 
@@ -140,3 +127,65 @@ def Bowling_strike_rate(deliveries_df):
             round((combined_df["balls_bowled"] / (combined_df["wickets_taken"] + 1e-6)) * 6, 2))
     result_df=strike_rate_df.select("bowler","strike_rate")
     return result_df
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Best Bowling Figures
+
+# COMMAND ----------
+
+def best_bowling_figures(deliveries_df):
+
+    #Filtering records by removing run outs
+    df = deliveries_df.filter((col('mode_of_dismissal') != 'run out') | (col('mode_of_dismissal').isNull()))
+    
+    #Grouping
+    df = df.groupBy('match_key', 'bowler').agg(count('player_out').alias('wickets'), sum('runs_batsman').alias('runs'))
+    df = df.withColumn("best_bowling_figure", concat_ws("/", col("wickets"), col("runs")))
+
+    # Defining a window specification to partition by "bowler_name" and rank by the criteria
+    window_spec = Window.partitionBy("bowler").orderBy(col("wickets").desc(), col("runs").asc())
+
+    # Calculate the ranking column based on wickets taken (you can adjust the criteria)
+    df = df.withColumn("ranking", rank().over(window_spec))
+
+    # Filter to keep only the rows where the ranking is 1 (best bowling figures for each bowler)
+    best_bowling_figures = df.filter(col("ranking") == 1).drop('ranking','wickets', 'runs').orderBy(desc('best_bowling_figure')).drop('match_key')
+
+    return best_bowling_figures
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Maiden Overs
+
+# COMMAND ----------
+
+def maiden_overs(deliveries_df):
+    #Grouping
+    df = deliveries_df.groupBy('match_key','innings_order','bowling_over','bowler').agg(sum('runs_total').alias('runs'))
+
+    #Applying filter for overs having no runs
+    df = df.filter(col('runs')==0).drop('runs')
+    
+    #Counting maiden overs per bowler
+    maiden_overs = df.groupBy('bowler').agg(count('match_key').alias('maiden_overs')).orderBy(desc('maiden_overs'))
+
+    return maiden_overs
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##Boundaries Conceded
+
+# COMMAND ----------
+
+def boundaries_conceded(deliveries_df):
+    #Applying Filter for boundaries
+    df = deliveries_df.filter((col('runs_batsman')==4) | (col('runs_batsman')==6))
+
+    #Grouping by bowler
+    boundaries_conceded = df.groupBy('bowler').agg(count('match_key').alias('boundaries_conceded')).orderBy(desc('boundaries_conceded'))
+
+    return boundaries_conceded
