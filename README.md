@@ -8,7 +8,7 @@ WePlay is a Sports Analytics company that provides data solutions to a lot of th
 1. *Azure Databricks*
 2. *Azure Cloud Storage*
 
-### About Datasets:
+### Datasets Snapshots:
 1. ipl_batting:
    ![image](https://github.com/raj0512gaurav/WePlay_Capstone/assets/56684761/cccb6d08-6160-461f-af5c-18797b5a8a75)
 2. ipl_deliveries:
